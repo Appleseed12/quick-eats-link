@@ -221,6 +221,7 @@ export const business = {
   landlineHref: "tel:+97167021401",
   whatsapp: "052 350 4511",
   whatsappNumber: "971523504511",
+  whatsappUrl: "https://wa.me/971523504511",
   email: "alwarqacafeteria@gmail.com",
   mapsUrl: "https://maps.app.goo.gl/43kXStc5t6hMnoy77",
 };
