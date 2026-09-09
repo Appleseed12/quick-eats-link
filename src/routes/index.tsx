@@ -88,7 +88,7 @@ function Index() {
             <Phone className="size-4" aria-hidden="true" /> Call {business.landline}
           </a>
           <a
-            href={`https://wa.me/${business.whatsappNumber}`}
+            href={business.whatsappUrl}
             target="_blank"
             rel="noreferrer"
             className="flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
@@ -174,7 +174,7 @@ function Index() {
         <p>
           WhatsApp / Mobile:{" "}
           <a
-            href={`https://wa.me/${business.whatsappNumber}`}
+            href={business.whatsappUrl}
             target="_blank"
             rel="noreferrer"
             className="text-foreground underline-offset-4 hover:underline"
@@ -201,7 +201,7 @@ function Index() {
           <Phone className="size-5" aria-hidden="true" /> Call to order
         </a>
         <a
-          href={`https://wa.me/${business.whatsappNumber}`}
+          href={business.whatsappUrl}
           target="_blank"
           rel="noreferrer"
           className="flex items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-4 font-semibold text-primary-foreground shadow-lg"
