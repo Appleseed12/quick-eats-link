@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MapPin, Phone, MessageCircle, Search, Plus, Minus, X, ShoppingBag } from "lucide-react";
+import { MapPin, Phone, MessageCircle, Search, X } from "lucide-react";
 import heroImg from "@/assets/hero.jpg";
-import { menu, business, type MenuItem } from "@/data/menu";
+import { menu, business } from "@/data/menu";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,20 +19,16 @@ export const Route = createFileRoute("/")({
         content:
           "Full menu with prices in AED. Free delivery in Muwaileh, Sharjah. Order by phone or WhatsApp.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
 });
 
-type CartLine = { key: string; name: string; price: string; value: number; qty: number };
-
 function Index() {
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(menu[0]!.id);
-  const [cart, setCart] = useState<Record<string, CartLine>>({});
-  const [cartOpen, setCartOpen] = useState(false);
-  const [customerName, setCustomerName] = useState("");
-  const [notes, setNotes] = useState("");
 
   const categories = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -41,47 +37,6 @@ function Index() {
       .map((c) => ({ ...c, items: c.items.filter((i) => i.name.toLowerCase().includes(q)) }))
       .filter((c) => c.items.length > 0);
   }, [query]);
-
-  const lines = Object.values(cart);
-  const itemCount = lines.reduce((n, l) => n + l.qty, 0);
-  const total = lines.reduce((n, l) => n + l.qty * l.value, 0);
-  const hasVariablePrice = lines.some((l) => l.price.includes("/"));
-
-  function add(item: MenuItem, categoryId: string) {
-    const key = `${categoryId}::${item.name}`;
-    setCart((c) => ({
-      ...c,
-      [key]: {
-        key,
-        name: item.name,
-        price: item.price,
-        value: item.value,
-        qty: (c[key]?.qty ?? 0) + 1,
-      },
-    }));
-  }
-
-  function remove(key: string) {
-    setCart((c) => {
-      const line = c[key];
-      if (!line) return c;
-      const next = { ...c };
-      if (line.qty <= 1) delete next[key];
-      else next[key] = { ...line, qty: line.qty - 1 };
-      return next;
-    });
-  }
-
-  const orderText = useMemo(() => {
-    const header = `Hello ${business.name}, I would like to place an order:`;
-    const body = lines.map((l) => `• ${l.qty} x ${l.name} (AED ${l.price})`).join("\n");
-    const parts = [header, body, `Estimated total: AED ${total.toFixed(2)}`];
-    if (customerName.trim()) parts.push(`Name: ${customerName.trim()}`);
-    if (notes.trim()) parts.push(`Notes / delivery address: ${notes.trim()}`);
-    return parts.join("\n");
-  }, [lines, total, customerName, notes]);
-
-  const whatsappHref = `https://wa.me/${business.whatsappNumber}?text=${encodeURIComponent(orderText)}`;
 
   return (
     <main className="min-h-screen bg-background pb-28">
@@ -194,50 +149,15 @@ function Index() {
             <h2 className="text-2xl text-gold">{c.title}</h2>
             <p className="text-xs text-muted-foreground">{c.blurb}</p>
             <ul className="mt-3 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
-              {c.items.map((item) => {
-                const key = `${c.id}::${item.name}`;
-                const qty = cart[key]?.qty ?? 0;
-                return (
-                  <li key={key} className="flex items-center gap-3 px-4 py-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-card-foreground">
-                        {item.name}
-                      </p>
-                      {item.note && (
-                        <p className="text-xs text-muted-foreground">{item.note}</p>
-                      )}
-                    </div>
-                    <span className="text-sm font-bold text-gold">{item.price}</span>
-                    {qty > 0 ? (
-                      <div className="flex items-center gap-2 rounded-full border border-border px-1 py-1">
-                        <button
-                          onClick={() => remove(key)}
-                          aria-label={`Remove one ${item.name}`}
-                          className="grid size-7 place-items-center rounded-full bg-secondary text-secondary-foreground"
-                        >
-                          <Minus className="size-3.5" />
-                        </button>
-                        <span className="w-4 text-center text-sm font-bold">{qty}</span>
-                        <button
-                          onClick={() => add(item, c.id)}
-                          aria-label={`Add one ${item.name}`}
-                          className="grid size-7 place-items-center rounded-full bg-primary text-primary-foreground"
-                        >
-                          <Plus className="size-3.5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => add(item, c.id)}
-                        aria-label={`Add ${item.name} to order`}
-                        className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90"
-                      >
-                        <Plus className="size-4" />
-                      </button>
-                    )}
-                  </li>
-                );
-              })}
+              {c.items.map((item) => (
+                <li key={`${c.id}::${item.name}`} className="flex items-baseline gap-3 px-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-card-foreground">{item.name}</p>
+                    {item.note && <p className="text-xs text-muted-foreground">{item.note}</p>}
+                  </div>
+                  <span className="shrink-0 text-sm font-bold text-gold">{item.price}</span>
+                </li>
+              ))}
             </ul>
           </section>
         ))}
@@ -272,128 +192,23 @@ function Index() {
         <p className="mt-4 text-xs">Prices in AED and may change without notice.</p>
       </footer>
 
-      {/* Cart bar */}
-      {itemCount > 0 && !cartOpen && (
-        <button
-          onClick={() => setCartOpen(true)}
-          className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-between rounded-2xl bg-primary px-5 py-4 font-semibold text-primary-foreground shadow-lg"
+      {/* Sticky order actions */}
+      <div className="fixed inset-x-4 bottom-4 z-30 grid grid-cols-2 gap-3">
+        <a
+          href={business.landlineHref}
+          className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-secondary px-4 py-4 font-semibold text-secondary-foreground shadow-lg"
         >
-          <span className="flex items-center gap-2">
-            <ShoppingBag className="size-5" aria-hidden="true" />
-            {itemCount} item{itemCount > 1 ? "s" : ""}
-          </span>
-          <span>AED {total.toFixed(2)} · Review order</span>
-        </button>
-      )}
-
-      {/* Cart sheet */}
-      {cartOpen && (
-        <div className="fixed inset-0 z-40 flex items-end bg-black/60" role="dialog" aria-label="Your order">
-          <button
-            className="absolute inset-0 cursor-default"
-            aria-label="Close order summary"
-            onClick={() => setCartOpen(false)}
-          />
-          <div className="relative max-h-[88vh] w-full overflow-y-auto rounded-t-3xl border-t border-border bg-card p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl text-gold">Your order</h2>
-              <button onClick={() => setCartOpen(false)} aria-label="Close">
-                <X className="size-5 text-muted-foreground" />
-              </button>
-            </div>
-
-            {lines.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                Your order is empty.
-              </p>
-            ) : (
-              <>
-                <ul className="mt-4 divide-y divide-border">
-                  {lines.map((l) => (
-                    <li key={l.key} className="flex items-center gap-3 py-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold">{l.name}</p>
-                        <p className="text-xs text-muted-foreground">AED {l.price} each</p>
-                      </div>
-                      <div className="flex items-center gap-2 rounded-full border border-border p-1">
-                        <button
-                          onClick={() => remove(l.key)}
-                          aria-label={`Remove one ${l.name}`}
-                          className="grid size-7 place-items-center rounded-full bg-secondary text-secondary-foreground"
-                        >
-                          <Minus className="size-3.5" />
-                        </button>
-                        <span className="w-4 text-center text-sm font-bold">{l.qty}</span>
-                        <button
-                          onClick={() =>
-                            add({ name: l.name, price: l.price, value: l.value }, l.key.split("::")[0] ?? "")
-                          }
-                          aria-label={`Add one ${l.name}`}
-                          className="grid size-7 place-items-center rounded-full bg-primary text-primary-foreground"
-                        >
-                          <Plus className="size-3.5" />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-base font-bold">
-                  <span>Estimated total</span>
-                  <span className="text-gold">AED {total.toFixed(2)}</span>
-                </div>
-                {hasVariablePrice && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Some items have small/large prices — the total uses the lower price. The
-                    cafeteria will confirm the final amount.
-                  </p>
-                )}
-
-                <div className="mt-4 space-y-3">
-                  <input
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Your name (optional)"
-                    className="w-full rounded-xl border border-border bg-background px-3 py-3 text-sm outline-none focus:border-primary"
-                    aria-label="Your name"
-                  />
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Delivery address or notes (optional)"
-                    rows={3}
-                    className="w-full rounded-xl border border-border bg-background px-3 py-3 text-sm outline-none focus:border-primary"
-                    aria-label="Delivery address or notes"
-                  />
-                </div>
-
-                <div className="mt-4 space-y-3">
-                  <a
-                    href={whatsappHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-4 font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-                  >
-                    <MessageCircle className="size-5" aria-hidden="true" /> Order via WhatsApp
-                  </a>
-                  <a
-                    href={business.landlineHref}
-                    className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-secondary px-4 py-4 font-semibold text-secondary-foreground transition-colors hover:bg-muted"
-                  >
-                    <Phone className="size-5" aria-hidden="true" /> Call {business.landline}
-                  </a>
-                  <button
-                    onClick={() => setCart({})}
-                    className="w-full py-2 text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
-                  >
-                    Clear order
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+          <Phone className="size-5" aria-hidden="true" /> Call to order
+        </a>
+        <a
+          href={`https://wa.me/${business.whatsappNumber}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-4 font-semibold text-primary-foreground shadow-lg"
+        >
+          <MessageCircle className="size-5" aria-hidden="true" /> WhatsApp
+        </a>
+      </div>
     </main>
   );
 }
