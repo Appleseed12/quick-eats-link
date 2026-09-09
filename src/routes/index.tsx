@@ -28,7 +28,7 @@ type CartLine = { key: string; name: string; price: string; value: number; qty: 
 
 function Index() {
   const [query, setQuery] = useState("");
-  const [active, setActive] = useState(menu[0].id);
+  const [active, setActive] = useState(menu[0]!.id);
   const [cart, setCart] = useState<Record<string, CartLine>>({});
   const [cartOpen, setCartOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
@@ -326,7 +326,7 @@ function Index() {
                         <span className="w-4 text-center text-sm font-bold">{l.qty}</span>
                         <button
                           onClick={() =>
-                            add({ name: l.name, price: l.price, value: l.value }, l.key.split("::")[0])
+                            add({ name: l.name, price: l.price, value: l.value }, l.key.split("::")[0] ?? "")
                           }
                           aria-label={`Add one ${l.name}`}
                           className="grid size-7 place-items-center rounded-full bg-primary text-primary-foreground"
